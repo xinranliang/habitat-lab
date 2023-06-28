@@ -133,6 +133,28 @@ class HabitatSimV1ActionSpaceConfiguration(
         return config
 
 
+# custom action space without stop = ["move forward", "turn left", "turn right"]
+@registry.register_action_space_configuration(name="v2")
+class HabitatSimV2ActionSpaceConfiguration(ActionSpaceConfiguration):
+    def get(self):
+        return {
+            HabitatSimActions.MOVE_FORWARD: habitat_sim.ActionSpec(
+                "move_forward",
+                habitat_sim.ActuationSpec(
+                    amount=self.config.FORWARD_STEP_SIZE
+                ),
+            ),
+            HabitatSimActions.TURN_LEFT: habitat_sim.ActionSpec(
+                "turn_left",
+                habitat_sim.ActuationSpec(amount=self.config.TURN_ANGLE),
+            ),
+            HabitatSimActions.TURN_RIGHT: habitat_sim.ActionSpec(
+                "turn_right",
+                habitat_sim.ActuationSpec(amount=self.config.TURN_ANGLE),
+            ),
+        }
+
+
 @registry.register_action_space_configuration(name="pyrobotnoisy")
 class HabitatSimPyRobotActionSpaceConfiguration(ActionSpaceConfiguration):
     def get(self):

@@ -14,7 +14,7 @@ from habitat.core.env import Env, RLEnv
 from habitat.core.logging import logger
 from habitat.core.registry import registry
 from habitat.core.simulator import Sensor, SensorSuite, SensorTypes, Simulator
-from habitat.core.vector_env import ThreadedVectorEnv, VectorEnv
+from habitat.core.vector_env import ThreadedVectorEnv, VectorEnv, SimpleVectorEnv
 from habitat.datasets import make_dataset
 from habitat.version import VERSION as __version__  # noqa
 
@@ -38,4 +38,5 @@ __all__ = [
     "Simulator",
     "ThreadedVectorEnv",
     "VectorEnv",
+    "SimpleVectorEnv",
 ]

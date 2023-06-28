@@ -15,6 +15,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from gym.spaces import Box
+from PIL import Image
 
 from habitat import logger
 from habitat.utils.visualizations.utils import images_to_video
@@ -54,6 +55,20 @@ class CategoricalNet(nn.Module):
 
     def forward(self, x):
         x = self.linear(x)
+        return CustomFixedCategorical(logits=x)
+
+class CategoricalMLPNet(nn.Module):
+    def __init__(self, num_inputs, num_outputs, hidden_dim):
+        super().__init__()
+
+        self.fc_net = nn.Sequential(nn.Linear(num_inputs, hidden_dim),
+                                        nn.ReLU(),
+                                        nn.Linear(hidden_dim, num_outputs))
+
+        self.apply(weight_init_withgain)
+
+    def forward(self, x):
+        x = self.fc_net(x)
         return CustomFixedCategorical(logits=x)
 
 
@@ -228,6 +243,68 @@ def generate_video(
         )
 
 
+def generate_map_image(
+    video_option: List[str],
+    map_dir: Optional[str],
+    images: List[np.ndarray],
+    episode_id: int,
+    checkpoint_idx: int,
+    metrics: Dict[str, float],
+    tb_writer: TensorboardWriter,
+) -> None:
+    if len(images) < 1:
+        return
+
+    metric_strs = []
+    for k, v in metrics.items():
+        metric_strs.append(f"{k}={v:.2f}")
+
+    map_name = f"episode={episode_id}-ckpt={checkpoint_idx}-" + "-".join(
+        metric_strs
+    )
+    if "disk" in video_option:
+        assert map_dir is not None
+        map_image = Image.fromarray(images[-1])
+        map_image.save(os.path.join(map_dir, f"{map_name}.png"))
+        map_image.save(os.path.join(map_dir, f"{map_name}.pdf"))
+
+
+def generate_video_custom(
+    video_option: List[str],
+    video_dir: Optional[str],
+    images: List[np.ndarray],
+    episode_id: int,
+    checkpoint_idx: int,
+    tb_writer: TensorboardWriter,
+    fps: int = 10,
+) -> None:
+    r"""Generate video according to specified information.
+
+    Args:
+        video_option: string list of "tensorboard" or "disk" or both.
+        video_dir: path to target video directory.
+        images: list of images to be converted to video.
+        episode_id: episode id for video naming.
+        checkpoint_idx: checkpoint index for video naming.
+        tb_writer: tensorboard writer object for uploading video.
+        fps: fps for generated video.
+    Returns:
+        None
+    """
+    if len(images) < 1:
+        return
+
+    video_name = f"ckpt={checkpoint_idx}-episode={episode_id}"
+    print(video_name)
+    if "disk" in video_option:
+        assert video_dir is not None
+        images_to_video(images, video_dir, video_name)
+    if "tensorboard" in video_option:
+        tb_writer.add_video_from_np_images(
+            f"episode{episode_id}", checkpoint_idx, images, fps=fps
+        )
+
+
 def image_resize_shortest_edge(
     img, size: int, channels_last: bool = False
 ) -> torch.Tensor:
@@ -315,3 +392,28 @@ def overwrite_gym_box_shape(box: Box, shape) -> Box:
     low = box.low if np.isscalar(box.low) else np.min(box.low)
     high = box.high if np.isscalar(box.high) else np.max(box.high)
     return Box(low=low, high=high, shape=shape, dtype=box.dtype)
+
+
+def weight_init_common(m):
+    """Custom weight init for Conv2D and Linear layers."""
+    if isinstance(m, nn.Linear):
+        nn.init.orthogonal_(m.weight.data)
+        if hasattr(m.bias, 'data'):
+            m.bias.data.fill_(0.0)
+    elif isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d):
+        gain = nn.init.calculate_gain('relu')
+        nn.init.orthogonal_(m.weight.data, gain)
+        if hasattr(m.bias, 'data'):
+            m.bias.data.fill_(0.0)
+
+def weight_init_withgain(m):
+    """Custom weight init for Conv2D and Linear layers."""
+    if isinstance(m, nn.Linear):
+        nn.init.orthogonal_(m.weight.data, gain=0.01)
+        if hasattr(m.bias, 'data'):
+            m.bias.data.fill_(0.0)
+    elif isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d):
+        gain = nn.init.calculate_gain('relu')
+        nn.init.orthogonal_(m.weight.data, gain)
+        if hasattr(m.bias, 'data'):
+            m.bias.data.fill_(0.0)
