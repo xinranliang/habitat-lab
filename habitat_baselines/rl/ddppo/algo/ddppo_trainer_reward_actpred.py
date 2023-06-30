@@ -257,40 +257,22 @@ class DDPPOTrainer_RewardActPred(PPOTrainer_RewardActPred):
             )
 
         if rl_cfg.rnd:
-            if rl_cfg.rnd_momentum: # deprecated
-                self.reward_agent = RND(
-                    encoder = self.actor_critic.policy_net.policy_encoder, # take in original policy encoder
-                    hidden_dim = rl_cfg.rnd_hidden_dim,
-                    rnd_repr_dim = rl_cfg.rnd_repr_dim,
-                    learning_rate = rl_cfg.rnd_lr,
-                    tau = rl_cfg.rnd_target_tau,
-                    device = self.device
-                )
-            else:
-                self.reward_agent = RND(
-                    hidden_dim = rl_cfg.rnd_hidden_dim,
-                    rnd_repr_dim = rl_cfg.rnd_repr_dim,
-                    learning_rate = rl_cfg.rnd_lr,
-                    device = self.device
-                )
+            self.reward_agent = RND() (
+                # encoder = self.actor_critic.policy_net.policy_encoder, # deprecated rnd_momentum
+                hidden_dim = rl_cfg.rnd_hidden_dim,
+                rnd_repr_dim = rl_cfg.rnd_repr_dim,
+                learning_rate = rl_cfg.rnd_lr,
+                device = self.device
+            )
         elif rl_cfg.crl:
-            if rl_cfg.crl_momentum: # deprecated
-                self.reward_agent = CRL(
-                    encoder = self.actor_critic.policy_net.policy_encoder, # take in original policy encoder,
-                    proj_dim = rl_cfg.crl_repr_dim,
-                    hidden_dim = rl_cfg.crl_hidden_dim,
-                    simclr_lr = rl_cfg.crl_lr,
-                    temperature = rl_cfg.temperature,
-                    device = self.device
-                )
-            else:
-                self.reward_agent = CRL(
-                    proj_dim = rl_cfg.crl_repr_dim,
-                    hidden_dim = rl_cfg.crl_hidden_dim,
-                    simclr_lr = rl_cfg.crl_lr,
-                    temperature = rl_cfg.temperature,
-                    device = self.device
-                )
+            self.reward_agent = CRL(
+                # encoder = self.actor_critic.policy_net.policy_encoder, # deprecated crl_momentum
+                proj_dim = rl_cfg.crl_repr_dim,
+                hidden_dim = rl_cfg.crl_hidden_dim,
+                simclr_lr = rl_cfg.crl_lr,
+                temperature = rl_cfg.temperature,
+                device = self.device
+            )
         else:
             raise NotImplementedError
         self.reward_agent = DistributedDataParallel(
@@ -626,8 +608,10 @@ class DDPPOTrainer_RewardActPred(PPOTrainer_RewardActPred):
                             dict(step=count_steps),
                         )
                         self.reward_agent.module.save(self.config.CHECKPOINT_FOLDER, count_checkpoints) # have an ["encoder"] entry
-                        self.dynamics_agent.module.save(self.config.CHECKPOINT_FOLDER, count_checkpoints)
-                        self.actor_critic.policy_net.policy_encoder.save(self.config.CHECKPOINT_FOLDER, count_checkpoints)
+                        # save additional models, otherwise exploration baselines
+                        if dyn_cfg.invdyn_mlp:
+                            self.dynamics_agent.module.save(self.config.CHECKPOINT_FOLDER, count_checkpoints)
+                            self.actor_critic.policy_net.policy_encoder.save(self.config.CHECKPOINT_FOLDER, count_checkpoints)
                         count_checkpoints += 1
 
             self.envs.close()
