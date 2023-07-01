@@ -401,7 +401,7 @@ class DDPPOTrainer_RewardActPred(PPOTrainer_RewardActPred):
                     return
 
                 count_steps_delta = 0
-                # CHECK: no need to input model.eval() since it will be in mode torch.no_grad()
+                # no need to input model.eval() since it will be in mode torch.no_grad()
                 # self.agent.eval()
                 for step in range(ppo_cfg.num_steps):
 
@@ -432,7 +432,7 @@ class DDPPOTrainer_RewardActPred(PPOTrainer_RewardActPred):
                 if self.config.SAVE_PPO_IMAGE:
                     image_index_initial = self.save_image(rollouts, image_index_initial)
                 
-                # FIRST: update visual encoder of RL policy with inverse dynamics objective
+                # update visual encoder of RL policy with inverse dynamics objective
                 if dyn_cfg.invdyn_mlp:
                     inv_dyn_loss = self.dynamics_agent.module.update_invdyn(rollouts.observations, rollouts.actions)
                     # average across multiple gpus
@@ -442,7 +442,7 @@ class DDPPOTrainer_RewardActPred(PPOTrainer_RewardActPred):
                         writer.add_scalar("inv_dyn_loss", inv_dyn_loss["inv_dyn_loss"], count_steps)
                         writer.add_scalar("inv_dyn_acc", inv_dyn_loss["pred_acc"], count_steps)
 
-                # SECOND: update exploration agent with RND curiosity objective
+                # update exploration agent with RND curiosity objective
                 if rl_cfg.rnd:
                     for _ in range(rl_cfg.gradient_updates):
                         rnd_loss = self.reward_agent.module.update(rollouts.observations[1:])
@@ -457,6 +457,7 @@ class DDPPOTrainer_RewardActPred(PPOTrainer_RewardActPred):
                         crl_loss = self.reward_agent.module.update(rollouts.observations[1:])
                     # average across multiple gpus
                     crl_loss = comm.reduce_dict(crl_loss)
+
                     if self.world_rank == 0:
                         writer.add_scalar("crl_loss", crl_loss["crl_loss"], count_steps)
                 
@@ -484,7 +485,7 @@ class DDPPOTrainer_RewardActPred(PPOTrainer_RewardActPred):
                     current_episode_reward *= torch.index_select(rollouts.masks, 0, step).squeeze(0)
                 del step
 
-                # CHECK: remove bc we don't change mode anyway
+                # remove bc we don't change mode anyway
                 # self.agent.train()
                 if self._static_encoder:
                     self._encoder.eval()

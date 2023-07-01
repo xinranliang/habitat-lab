@@ -320,40 +320,24 @@ class PPOTrainer_RewardActPred(BaseRLTrainer):
             )
         
         if rl_cfg.rnd:
-            if rl_cfg.rnd_momentum: # deprecated
-                self.reward_agent = RND(
-                    encoder = self.actor_critic.policy_net.policy_encoder, # take in original policy encoder
-                    hidden_dim = rl_cfg.rnd_hidden_dim,
-                    rnd_repr_dim = rl_cfg.rnd_repr_dim,
-                    learning_rate = rl_cfg.rnd_lr,
-                    tau = rl_cfg.rnd_target_tau,
-                    device = self.device
-                )
-            else:
-                self.reward_agent = RND(
-                    hidden_dim = rl_cfg.rnd_hidden_dim,
-                    rnd_repr_dim = rl_cfg.rnd_repr_dim,
-                    learning_rate = rl_cfg.rnd_lr,
-                    device = self.device
-                )
+            self.reward_agent = RND() (
+                # encoder = self.actor_critic.policy_net.policy_encoder, # deprecated rnd_momentum
+                hidden_dim = rl_cfg.rnd_hidden_dim,
+                rnd_repr_dim = rl_cfg.rnd_repr_dim,
+                learning_rate = rl_cfg.rnd_lr,
+                device = self.device
+            )
         elif rl_cfg.crl:
-            if rl_cfg.crl_momentum: # deprecated
-                self.reward_agent = CRL(
-                    encoder = self.actor_critic.policy_net.policy_encoder, # take in original policy encoder,
-                    proj_dim = rl_cfg.crl_repr_dim,
-                    hidden_dim = rl_cfg.crl_hidden_dim,
-                    simclr_lr = rl_cfg.crl_lr,
-                    temperature = rl_cfg.temperature,
-                    device = self.device
-                )
-            else:
-                self.reward_agent = CRL(
-                    proj_dim = rl_cfg.crl_repr_dim,
-                    hidden_dim = rl_cfg.crl_hidden_dim,
-                    simclr_lr = rl_cfg.crl_lr,
-                    temperature = rl_cfg.temperature,
-                    device = self.device
-                )
+            self.reward_agent = CRL(
+                # encoder = self.actor_critic.policy_net.policy_encoder, # deprecated crl_momentum
+                proj_dim = rl_cfg.crl_repr_dim,
+                hidden_dim = rl_cfg.crl_hidden_dim,
+                simclr_lr = rl_cfg.crl_lr,
+                temperature = rl_cfg.temperature,
+                device = self.device
+            )
+        else:
+            raise NotImplementedError
 
         rollouts = SimpleRolloutStorage(
             ppo_cfg.num_steps,
