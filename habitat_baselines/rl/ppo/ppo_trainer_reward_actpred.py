@@ -215,8 +215,6 @@ class PPOTrainer_RewardActPred(BaseRLTrainer):
         
         # one hot encode actions
         actions = torch.nn.functional.one_hot(actions, num_classes=3)
-        print(actions.shape)
-        input("press enter to continue")
         actions = torch.squeeze(actions).float()
 
         # try to understand (s, a, s')
@@ -320,7 +318,7 @@ class PPOTrainer_RewardActPred(BaseRLTrainer):
             )
         
         if rl_cfg.rnd:
-            self.reward_agent = RND() (
+            self.reward_agent = RND(
                 # encoder = self.actor_critic.policy_net.policy_encoder, # deprecated rnd_momentum
                 hidden_dim = rl_cfg.rnd_hidden_dim,
                 rnd_repr_dim = rl_cfg.rnd_repr_dim,

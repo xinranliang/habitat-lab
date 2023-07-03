@@ -13,7 +13,7 @@ import habitat_sim
 
 import habitat
 from ..config.default import get_config_simple
-from ..rl.ppo import PPO, BaselinePolicyRollout
+from ..rl.ppo import PPO
 from habitat.utils.visualizations.utils import observations_to_image_custom
 from ..common.utils import generate_video_custom
 from habitat_baselines.common.sim_settings import default_sim_settings, make_cfg

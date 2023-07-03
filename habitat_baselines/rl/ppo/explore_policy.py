@@ -139,7 +139,7 @@ class ExploreNet(nn.Module, metaclass=abc.ABCMeta):
         pass
 
 
-class ExplorePolicyNet(Net):
+class ExplorePolicyNet(ExploreNet):
     r"""Network which passes the input image through CNN and concatenates
     goal vector with CNN's output and passes that through RNN.
     """
@@ -149,7 +149,7 @@ class ExplorePolicyNet(Net):
 
         self._hidden_size = hidden_size
 
-        self.policy_encoder = DetectronResNet50(pretrained=False, downsample=True, device_id=torch.cuda.current_device())
+        self.policy_encoder = DetectronResNet50(downsample=True, device_id=torch.cuda.current_device())
         self.state_encoder = RNNStateEncoder(
             self.policy_encoder.output_size,
             self._hidden_size,

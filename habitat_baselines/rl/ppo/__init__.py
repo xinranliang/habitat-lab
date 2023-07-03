@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from habitat_baselines.rl.ppo.policy import Net, PointNavBaselinePolicy, Policy
-from habitat_baselines.rl.ppo.explore_policy import ExploreNet, ExploreBaselinePolicy, ExplorePolicy
+from habitat_baselines.rl.ppo.explore_policy import ExploreNet, ExploreBaselinePolicy, ExplorePolicy, ExploreBaselinePolicyRollout
 from habitat_baselines.rl.ppo.ppo import PPO
 
-__all__ = ["PPO", "Policy", "RolloutStorage", "Net", "PointNavBaselinePolicy", "ExploreNet", "ExploreBaselinePolicy"]
+__all__ = ["PPO", "Policy", "RolloutStorage", "Net", "PointNavBaselinePolicy", "ExploreNet", "ExploreBaselinePolicy", "ExploreBaselinePolicyRollout"]

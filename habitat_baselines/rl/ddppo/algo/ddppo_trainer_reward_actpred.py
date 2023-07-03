@@ -245,19 +245,19 @@ class DDPPOTrainer_RewardActPred(PPOTrainer_RewardActPred):
                 self.dynamics_agent, device_ids=[self.local_rank], output_device=self.local_rank, broadcast_buffers=True
                 )
         
-        if self.world_rank == 0:
-            logger.info(
-                "idm number of trainable parameters: {}".format(
-                    sum(
-                        param.numel()
-                        for param in self.dynamics_agent.parameters()
-                        if param.requires_grad
+            if self.world_rank == 0:
+                logger.info(
+                    "idm number of trainable parameters: {}".format(
+                        sum(
+                            param.numel()
+                            for param in self.dynamics_agent.parameters()
+                            if param.requires_grad
+                        )
                     )
                 )
-            )
 
         if rl_cfg.rnd:
-            self.reward_agent = RND() (
+            self.reward_agent = RND(
                 # encoder = self.actor_critic.policy_net.policy_encoder, # deprecated rnd_momentum
                 hidden_dim = rl_cfg.rnd_hidden_dim,
                 rnd_repr_dim = rl_cfg.rnd_repr_dim,
