@@ -13,7 +13,7 @@ import habitat_sim
 
 import habitat
 from ..config.default import get_config_simple
-from ..rl.ppo import PPO
+from ..rl.ppo import PPO, ExploreBaselinePolicyRollout
 from habitat.utils.visualizations.utils import observations_to_image_custom
 from ..common.utils import generate_video_custom
 from habitat_baselines.common.sim_settings import default_sim_settings, make_cfg
@@ -359,7 +359,7 @@ def main(config, param, save_dir, rollout_length, rollout_prob, start_index, gpu
     ddppo_cfg = config.RL.DDPPO
 
     # set up PPO agent and Actor-Critic model
-    actor_critic = BaselinePolicyRollout(
+    actor_critic = ExploreBaselinePolicyRollout(
             action_dim=3,
             hidden_size=ppo_cfg.hidden_size,
             num_recurrent_layers=ddppo_cfg.num_recurrent_layers,
